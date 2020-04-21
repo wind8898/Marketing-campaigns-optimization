@@ -18,12 +18,11 @@ from sklearn.ensemble import RandomForestClassifier
 
 # Obtain and combine database
 def combinedata():
-
     print("generating the DataFrame")
 
-    leads = pd.read_csv('data/leads.csv')
+    leads = pd.read_csv('data/leads.csv', low_memory=False)
 
-    opps = pd.read_csv('data/opps.csv')
+    opps = pd.read_csv('data/opps.csv', low_memory=False)
 
     opps['Opportunity'].fillna(value=1, inplace=True)
 
@@ -42,7 +41,6 @@ data = combinedata()
 
 # clean the DataFrame
 def cleandata():
-
     print("working on prepossessing of DataFrame")
 
     # Convert the SFDC Campaigns to yes or no
@@ -73,7 +71,6 @@ def cleandata():
 
 # set up data prepossessing functions
 def im(x):
-
     im = SimpleImputer(missing_values=np.nan, strategy='mean')
 
     array = im.fit_transform(x)
@@ -84,7 +81,6 @@ def im(x):
 
 
 def pca(x):
-
     pca = PCA(n_components=0.9)
 
     array = pca.fit_transform(x)
@@ -95,7 +91,6 @@ def pca(x):
 
 
 def var(x):
-
     var = VarianceThreshold(threshold=0.0)
 
     array = var.fit_transform(x)
@@ -106,7 +101,6 @@ def var(x):
 
 
 def mm(x_train, x_test):
-
     mm = MinMaxScaler()
 
     x_train = mm.fit_transform(x_train)
@@ -117,7 +111,6 @@ def mm(x_train, x_test):
 
 
 def stand(x_train, x_test):
-
     std = StandardScaler()
 
     x_train = std.fit_transform(x_train)
@@ -128,7 +121,6 @@ def stand(x_train, x_test):
 
 
 def dict(x_train, x_test):
-
     dict = DictVectorizer(sparse=False)
 
     x_train = dict.fit_transform(x_train.to_dict(orient='records'))
@@ -141,8 +133,7 @@ def dict(x_train, x_test):
 # Prepare the DataFrame for machine learning
 # Data prepossessing
 def train_test():
-
-    print("assigning train and test data")
+    print("preparing train and test data")
 
     # we could try different combination of features, and we will use the following one to save the calculation time
     df = data[['Media SubGroup', 'Primary Program', 'Unsubscribed', 'Attended Event', 'Opportunity']]
@@ -158,7 +149,6 @@ def train_test():
 
 # use knn model
 def knn():
-
     print("working on the knn model")
 
     x_train, x_test, y_train, y_test = train_test()
@@ -189,6 +179,7 @@ def knn():
     # y_predict
 
     print(f'the best score for knn model is {gcscore} and the best parameter is {parameter}')
+    print("-" * 100)
 
     return None
 
@@ -196,7 +187,6 @@ def knn():
 # Using decision tree
 
 def dec():
-
     print("working on the decision tree model, it may take a couple minutes to finish the process")
 
     x_train, x_test, y_train, y_test = train_test()
@@ -216,6 +206,7 @@ def dec():
     export_graphviz(dec, out_file='tree.dot')
 
     print(f'the score for dec model is {score}')
+    print("-" * 100)
 
     return None
 
@@ -223,7 +214,6 @@ def dec():
 # Using Random Forest
 
 def rf():
-
     print("working on the Random Forest model, it may take a couple minutes to finish the process")
 
     x_train, x_test, y_train, y_test = train_test()
@@ -252,8 +242,23 @@ def rf():
     parameter = GC.best_params_
 
     print(f'the best score Random Forest model is {GCscore} and the best parameter is {parameter}')
+    print("-" * 100)
 
-    return None
+    return rf
+
+
+# save the random forest model
+def storeTree(inputTree, filename):
+    import pickle
+    fw = open(filename, 'wb')
+    pickle.dump(inputTree, fw)
+    fw.close()
+
+
+def grabTree(filename):
+    import pickle
+    fr = open(filename, 'rb')
+    return pickle.load(fr)
 
 
 if __name__ == "__main__":
@@ -261,5 +266,6 @@ if __name__ == "__main__":
     cleandata()
     train_test()
     knn()
-    dec()
-    rf()
+    # dec()
+    # rf()
+    # storeTree(rf(), "student_rf_save.pkl")
