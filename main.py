@@ -15,6 +15,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.tree import export_graphviz
 from sklearn.ensemble import RandomForestClassifier
 from joblib import dump, load
+import threading
 
 """
 we have prepared the leads and opportunity data sets 
@@ -87,8 +88,6 @@ def cleandata():
 
     return df
 
-global_df = cleandata()
-
 # set up data prepossessing functions
 def im(x):
     im = SimpleImputer(missing_values=np.nan, strategy='mean')
@@ -155,13 +154,11 @@ def dict(x_train, x_test):
 
 # Prepare the DataFrame for machine learning
 # Data prepossessing
-def train_test():
+def train_test(df):
 
-    print("preparing train and test data")
+    y = df['Opportunity']
 
-    y = global_df['Opportunity']
-
-    x = global_df.drop(axis=1, columns=['Opportunity'])
+    x = df.drop(axis=1, columns=['Opportunity'])
 
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.25)
 
@@ -169,10 +166,10 @@ def train_test():
 
 
 # use knn model
-def knn():
+def knn(df):
     print("working on the knn model, it may take a couple minutes to finish the process")
 
-    x_train, x_test, y_train, y_test = train_test()
+    x_train, x_test, y_train, y_test = train_test(df)
 
     knn = KNeighborsClassifier()
 
@@ -210,10 +207,10 @@ def knn():
 
 # Using decision tree
 
-def dec():
+def dec(df):
     print("working on the decision tree model, it may take a couple minutes to finish the process")
 
-    x_train, x_test, y_train, y_test = train_test()
+    x_train, x_test, y_train, y_test = train_test(df)
 
     dec = DecisionTreeClassifier()
 
@@ -238,10 +235,10 @@ def dec():
 
 # Using Random Forest
 
-def rf():
+def rf(df):
     print("working on the Random Forest model, it may take a couple minutes to finish the process")
 
-    x_train, x_test, y_train, y_test = train_test()
+    x_train, x_test, y_train, y_test = train_test(df)
 
     # x_train, x_test = stand(x_train, x_test)
     # x_train, x_test = mm(x_train, x_test)
@@ -287,10 +284,22 @@ def grabTree(filename):
     return pickle.load(fr)
 
 
+def main():
+
+    df = cleandata()
+    train_test(df)
+    knn(df)
+    dec(df)
+    rf(df)
+
+    # model_knn = threading.Thread(target=knn)
+    # model_dec = threading.Thread(target=dec)
+    # model_rf = threading.Thread(target=rf)
+    # model_knn.start()
+    # model_dec.start()
+    # model_rf.start()
+
+
 if __name__ == "__main__":
-    combinedata()
-    cleandata()
-    train_test()
-    knn()
-    dec()
-    rf()
+    main()
+
