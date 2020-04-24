@@ -46,6 +46,8 @@ def combinedata():
 # clean the DataFrame
 def cleandata():
 
+    print("Preparing the data set...")
+
     data = pd.read_csv('data/machine_learning_data.csv', low_memory=False)
 
     # we are only taking 100, 000 sample
@@ -85,6 +87,8 @@ def cleandata():
                       'Attended Event')]
     df.fillna(value=0, inplace=True)
     df.dropna(how='any', inplace=True)
+
+    print('The data set is ready...')
 
     return df
 
@@ -156,6 +160,9 @@ def dict(x_train, x_test):
 # Data prepossessing
 def train_test(df):
 
+    print("Split the train and test data")
+    print("-" * 100)
+
     y = df['Opportunity']
 
     x = df.drop(axis=1, columns=['Opportunity'])
@@ -166,10 +173,10 @@ def train_test(df):
 
 
 # use knn model
-def knn(df):
-    print("working on the knn model, it may take a couple minutes to finish the process")
+def knn(x_train, x_test, y_train, y_test):
+    print("Working on the knn model, it may take a couple minutes to finish the process...")
 
-    x_train, x_test, y_train, y_test = train_test(df)
+    # x_train, x_test, y_train, y_test = train_test(df)
 
     knn = KNeighborsClassifier()
 
@@ -196,7 +203,7 @@ def knn(df):
     # y_predict = knn.predict(x_test)
     # y_predict
 
-    print(f'the best score for knn model is {gcscore} and the best parameter is {parameter}')
+    print(f'The best score for knn model is {gcscore} and the best parameter is {parameter}')
 
     print("-" * 100)
 
@@ -207,10 +214,10 @@ def knn(df):
 
 # Using decision tree
 
-def dec(df):
-    print("working on the decision tree model, it may take a couple minutes to finish the process")
+def dec(x_train, x_test, y_train, y_test):
+    print("Working on the decision tree model, it may take a couple minutes to finish the process...")
 
-    x_train, x_test, y_train, y_test = train_test(df)
+    # x_train, x_test, y_train, y_test = train_test(df)
 
     dec = DecisionTreeClassifier()
 
@@ -225,7 +232,7 @@ def dec(df):
 
     export_graphviz(dec, out_file='tree.dot')
 
-    print(f'the score for dec model is {score}')
+    print(f'The score for dec model is {score}')
     print("-" * 100)
 
     dump(dec, 'decision_tree_model.joblib')
@@ -235,10 +242,10 @@ def dec(df):
 
 # Using Random Forest
 
-def rf(df):
-    print("working on the Random Forest model, it may take a couple minutes to finish the process")
+def rf(x_train, x_test, y_train, y_test):
+    print("Working on the Random Forest model, it may take a couple minutes to finish the process...")
 
-    x_train, x_test, y_train, y_test = train_test(df)
+    # x_train, x_test, y_train, y_test = train_test(df)
 
     # x_train, x_test = stand(x_train, x_test)
     # x_train, x_test = mm(x_train, x_test)
@@ -262,7 +269,7 @@ def rf(df):
 
     parameter = GC.best_params_
 
-    print(f'the best score Random Forest model is {GCscore} and the best parameter is {parameter}')
+    print(f'The best score Random Forest model is {GCscore} and the best parameter is {parameter}')
     print("-" * 100)
 
     dump(GC, 'student_rf_best_model.joblib')
@@ -287,17 +294,17 @@ def grabTree(filename):
 def main():
 
     df = cleandata()
-    train_test(df)
-    knn(df)
-    dec(df)
-    rf(df)
+    x_train, x_test, y_train, y_test = train_test(df)
+    # knn(df)
+    # dec(df)
+    # rf(df)
 
-    # model_knn = threading.Thread(target=knn)
-    # model_dec = threading.Thread(target=dec)
-    # model_rf = threading.Thread(target=rf)
-    # model_knn.start()
-    # model_dec.start()
-    # model_rf.start()
+    model_knn = threading.Thread(target=knn, args=(x_train, x_test, y_train, y_test,))
+    model_dec = threading.Thread(target=dec, args=(x_train, x_test, y_train, y_test,))
+    model_rf = threading.Thread(target=rf, args=(x_train, x_test, y_train, y_test,))
+    model_knn.start()
+    model_dec.start()
+    model_rf.start()
 
 
 if __name__ == "__main__":
